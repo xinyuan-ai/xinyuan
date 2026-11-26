@@ -2,6 +2,12 @@ name: Xinyuan Windows Portable (v0.23.4)
 
 on:
   workflow_dispatch:
+  # workflow_dispatch via the REST API 404s when the workflow file exists
+  # only on a non-default branch (GitHub resolves it from the default
+  # branch). A push to this branch triggers the run instead, so main stays
+  # untouched until the build is verified.
+  push:
+    branches: [sync-0.23.4]
 
 permissions:
   contents: read
