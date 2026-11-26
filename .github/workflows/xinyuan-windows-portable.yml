@@ -59,6 +59,14 @@ jobs:
         shell: bash
         run: pnpm --filter ./apps/desktop run build
 
+      # pnpm-workspace.yaml allowBuilds does NOT include electron, so
+      # pnpm install never runs electron's install.js and the binary is
+      # absent; prepare-packaging-tools refuses to install it lazily
+      # (run 45882371316 failed here). Prepare it explicitly first.
+      - name: Prepare Electron runtime
+        shell: bash
+        run: node scripts/build/electron-runtime.mjs --source .
+
       - name: Electron builder (dir, no publish)
         shell: bash
         run: pnpm --filter ./apps/desktop run builder -- --dir --publish never
