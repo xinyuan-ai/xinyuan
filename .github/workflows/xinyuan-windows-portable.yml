@@ -1,0 +1,76 @@
+name: Xinyuan Windows Portable (v0.23.4)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-portable:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout sync branch
+        uses: actions/checkout@v4
+        with:
+          ref: sync-0.23.4
+
+      - name: Set up Node 26
+        uses: actions/setup-node@v4
+        with:
+          node-version: "26.13.0"
+
+      - name: Set up pnpm 12
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install JS dependencies
+        shell: bash
+        run: pnpm install --trust-lockfile
+
+      - name: Typecheck
+        shell: bash
+        run: pnpm run typecheck
+
+      - name: Verify no-review (61 assertions)
+        shell: bash
+        run: python verify_no_review234.py
+
+      - name: Build desktop
+        shell: bash
+        run: pnpm run build
+
+      - name: Electron builder (dir, no publish)
+        shell: bash
+        run: pnpm run builder --dir --publish never
+
+      - name: Assemble portable package
+        shell: bash
+        run: python scripts/assemble_portable.py --version 0.23.4
+
+      - name: Check portable package
+        shell: bash
+        run: |
+          python -c "import zipfile; z=zipfile.ZipFile('Xinyuan-Portable-0.23.4.zip'); print('entries:', len(z.namelist())); print('bad:', z.testzip())"
+          sha256sum Xinyuan-Portable-0.23.4.zip
+          cat SHA256SUMS.txt
+
+      - name: Upload portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Xinyuan-Portable-0.23.4
+          path: |
+            Xinyuan-Portable-0.23.4.zip
+            SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
