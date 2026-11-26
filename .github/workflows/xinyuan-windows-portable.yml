@@ -44,9 +44,12 @@ jobs:
         shell: bash
         run: pnpm install --trust-lockfile
 
+      # Root package.json has no typecheck/build/builder scripts; they live
+      # in apps/desktop (package name "hermes"). Run 45881774571 failed with
+      # ERR_PNPM_NO_SCRIPT because the root-level commands do not exist.
       - name: Typecheck
         shell: bash
-        run: pnpm run typecheck
+        run: pnpm --filter ./apps/desktop run typecheck
 
       - name: Verify no-review (61 assertions)
         shell: bash
@@ -54,11 +57,11 @@ jobs:
 
       - name: Build desktop
         shell: bash
-        run: pnpm run build
+        run: pnpm --filter ./apps/desktop run build
 
       - name: Electron builder (dir, no publish)
         shell: bash
-        run: pnpm run builder --dir --publish never
+        run: pnpm --filter ./apps/desktop run builder -- --dir --publish never
 
       - name: Assemble portable package
         shell: bash
