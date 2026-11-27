@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-portable:
-    runs-on: windows-latest
+    runs-on: blacksmith-32vcpu-windows-2025
     timeout-minutes: 180
     steps:
       - name: Checkout sync branch
